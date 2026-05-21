@@ -35,9 +35,6 @@ function LoginForm() {
   const redirect = searchParams.get("redirect") || "/dashboard";
   const supabase = getSupabase();
 
-  const devfolioUrl =
-    process.env.NEXT_PUBLIC_DEVFOLIO_URL || "http://localhost:3000";
-
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
@@ -59,12 +56,14 @@ function LoginForm() {
     }
   };
 
-  const handleGitHubViaDevFolio = () => {
-    const callbackUrl = `${window.location.origin}/api/auth/devfolio-callback`;
-    window.location.href =
-      `${devfolioUrl}/api/auth/cross-app` +
-      `?redirect_to=${encodeURIComponent(callbackUrl)}` +
-      `&state=${encodeURIComponent(redirect)}`;
+  const handleGitHub = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "github",
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+      },
+    });
+    if (error) toast.error(error.message);
   };
 
   const handleGoogle = async () => {
@@ -98,11 +97,11 @@ function LoginForm() {
           {/* OAuth */}
           <div className="flex gap-3">
             <button
-              onClick={handleGitHubViaDevFolio}
+              onClick={handleGitHub}
               className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-card-border py-2.5 text-sm font-medium transition-all hover:border-primary hover:text-primary"
             >
               <FaGithub size={18} />
-              GitHub via DevFolio
+              GitHub
             </button>
             <button
               onClick={handleGoogle}
